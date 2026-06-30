@@ -1,4 +1,6 @@
 from decimal import Decimal
+
+from jsonschema.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Booking
 
@@ -14,7 +16,7 @@ class BookingSerializer(serializers.ModelSerializer):
         desk = data.get('desk')
 
         if start >= end:
-            raise ValueError({"end_time": "Час завершення має бути пізніше початку."})
+            raise serializers.ValidationError({"end_time": "Час завершення має бути пізніше початку."})
 
         overlaying = Booking.objects.filter(
             desk=desk,

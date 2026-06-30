@@ -24,6 +24,9 @@ class Office(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_organization(self):
+        return self.organization
+
     def __str__(self):
         return self.address
 
@@ -46,6 +49,9 @@ class Room(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_organization(self):
+        return self.office.organization
+
     def __str__(self):
         return self.name
 
@@ -58,6 +64,9 @@ class Desk(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def get_organization(self):
+        return self.room.office.organization
 
     def __str__(self):
         return self.number
