@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from jsonschema.exceptions import ValidationError
 from rest_framework import serializers
 from .models import Booking
 
