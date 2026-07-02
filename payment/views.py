@@ -1,4 +1,5 @@
 import stripe
+from django.db.migrations import serializer
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -8,9 +9,11 @@ from drf_spectacular.utils import extend_schema
 from django.shortcuts import get_object_or_404
 
 from invoice.models import Invoice
+from users.models import User
 from .models import Payment
 from .serializers import PaymentSerializer, CheckoutSessionRequestSerializer
 from django.conf import settings
+from .permissions import IsAdminAndInOrganization
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -85,4 +88,22 @@ class StripeWebhookAPIView(APIView):
                 print(f"Рахунок {invoice_id} успішно оплачено та збережено в Payment!")
 
         return Response(status=status.HTTP_200_OK)
+
+class PaymentListAPIView(APIView):
+    permission_classes = [IsAdminAndInOrganization]
+
+    @extend_schema(responses=PaymentSerializer(many=True))
+    def get(self, request):
+        payments = Payment.objects.filter(invoice__organization=request.user.organization).select_related('invoice').order_by('-created_at')
+        serializer = PaymentSerializer(payments, many=True)
+        return Response(serializer.data)
+
+class PaymentDetailAPIView(APIView):
+    permission_classes = [IsAdminAndInOrganization]
+
+    @extend_schema(responses=PaymentSerializer)
+    def get(self, request, pk):
+        payment = get_object_or_404(Payment, pk=pk, invoice__organization=request.user.organization)
+        serializer = PaymentSerializer(payment)
+        return Response(serializer.data)
 
