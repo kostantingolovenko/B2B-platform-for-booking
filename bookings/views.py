@@ -19,12 +19,13 @@ class BookingListCreateAPIView(APIView):
 
     @extend_schema(responses=BookingSerializer(many=True))
     def get(self, request):
+        query_set = Booking.objects.select_related('user','user__organization', 'desk', 'desk__room')
         if request.user.is_staff:
-            bookings = (Booking.objects
+            bookings = (query_set
                         .filter(user__organization=getattr(request.user, 'organization', None))
                         .order_by('-start_time'))
         else:
-            bookings = Booking.objects.all().filter(user=request.user).order_by('-start_time')
+            bookings = query_set.filter(user=request.user).order_by('-start_time')
 
         paginator = PageNumberPagination()
         result_page = paginator.paginate_queryset(bookings, request)

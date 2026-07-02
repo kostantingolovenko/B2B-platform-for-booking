@@ -13,12 +13,13 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=PaymentStatus.choices,
                               default=PaymentStatus.IN_PROGRESS)
 
-    class PaymentMethod(models.TextChoices):
-        CORPORATE_CARD = 'Corporate card',  'Корпоративна картка'
-        BANK_TRANSFER = 'Bank transfer', 'Банківський переказ за реквізитами'
-
-    payment_method = models.CharField(max_length=30, choices=PaymentMethod.choices,
-                                      default=PaymentMethod.BANK_TRANSFER)
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        unique=True,
+        db_index=True,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
