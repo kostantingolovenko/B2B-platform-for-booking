@@ -29,7 +29,7 @@ class CreateStripeCheckoutAPIView(APIView):
         invoice_id = serializer.validated_data['invoice_id']
         invoice = get_object_or_404(Invoice, id=invoice_id, organization=request.user.organization)
 
-        if invoice.status == 'successful':
+        if invoice.status == 'paid':
             return Response({'detail': 'Цей рахунок вже оплачено.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -72,20 +72,25 @@ class StripeWebhookAPIView(APIView):
 
         if event['type'] == 'checkout.session.completed':
             session = event['data']['object']
-            invoice_id = session['metadata'].get('invoice_id')
+            session_dict = session.to_dict()
+            metadata = session_dict.get('metadata', {})
+            invoice_id = metadata.get('invoice_id')
 
             if invoice_id:
-                invoice = Invoice.objects.get(id=invoice_id)
-                invoice.status = 'paid'
-                invoice.save()
+                try:
+                    invoice = Invoice.objects.get(id=invoice_id)
+                    invoice.status = 'paid'
+                    invoice.save()
 
-                Payment.objects.create(
-                    invoice=invoice,
-                    amount=invoice.total_amount,
-                    status='successful',
-                    stripe_payment_intent_id=session.get('payment_intent')  # корисно для рефандів
-                )
-                print(f"Рахунок {invoice_id} успішно оплачено та збережено в Payment!")
+                    Payment.objects.create(
+                        invoice=invoice,
+                        amount=invoice.total_amount,
+                        status='successful',
+                        stripe_payment_intent_id=session_dict.get('payment_intent')
+                    )
+                    print(f"Рахунок {invoice_id} успішно оплачено та збережено в Payment!")
+                except Invoice.DoesNotExist:
+                    print(f"Помилка: Інвойс {invoice_id} не знайдено.")
 
         return Response(status=status.HTTP_200_OK)
 
