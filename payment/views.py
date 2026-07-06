@@ -1,5 +1,4 @@
 import stripe
-from django.db.migrations import serializer
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -9,7 +8,6 @@ from drf_spectacular.utils import extend_schema
 from django.shortcuts import get_object_or_404
 
 from invoice.models import Invoice
-from users.models import User
 from .models import Payment
 from .serializers import PaymentSerializer, CheckoutSessionRequestSerializer
 from django.conf import settings

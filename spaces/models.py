@@ -9,6 +9,9 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def get_organization(self):
+        return self
+
     def __str__(self):
         return self.name
 
